@@ -32,16 +32,23 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.Unmarshaller;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
+import static java.util.Optional.ofNullable;
+import static java.util.function.Function.identity;
 
 public class BaseCacheSpec implements CacheTemplate {
 
-  protected final BaseCacheType[] sources;
+  protected final List<BaseCacheType> sources;
   private final Map<URI, CacheServiceConfigurationParser<?>> serviceConfigParsers;
 
   CoreResourceConfigurationParser coreResourceConfigurationParser;
@@ -49,129 +56,66 @@ public class BaseCacheSpec implements CacheTemplate {
   public BaseCacheSpec(Map<URI, CacheServiceConfigurationParser<?>> serviceConfigParsers,
                        Map<URI, CacheResourceConfigurationParser> resourceConfigParsers, Unmarshaller unmarshaller, BaseCacheType... sources) {
     this.serviceConfigParsers = serviceConfigParsers;
-    coreResourceConfigurationParser = new DefaultResourceConfigurationParser(resourceConfigParsers, unmarshaller);
-    this.sources = sources;
+    this.coreResourceConfigurationParser = new DefaultResourceConfigurationParser(resourceConfigParsers, unmarshaller);
+    this.sources = asList(sources);
   }
 
   @Override
   public String keyType() {
-    String value = null;
-    for (BaseCacheType source : sources) {
-      value = source.getKeyType() != null ? source.getKeyType().getValue() : null;
-      if (value != null) break;
-    }
-    if (value == null) {
-      for (BaseCacheType source : sources) {
-        value = JaxbHelper.findDefaultValue(source, "keyType");
-        if (value != null) break;
-      }
-    }
-    return value;
+    return key().map(CacheEntryType::getValue).orElseGet(() -> extract(source -> JaxbHelper.findDefaultValue(source, "keyType")).orElse(null));
   }
 
   @Override
   public String keySerializer() {
-    String value = null;
-    for (BaseCacheType source : sources) {
-      value = source.getKeyType() != null ? source.getKeyType().getSerializer() : null;
-      if (value != null) break;
-    }
-    return value;
+    return key().map(CacheEntryType::getSerializer).orElse(null);
   }
 
   @Override
   public String keyCopier() {
-    String value = null;
-    for (BaseCacheType source : sources) {
-      value = source.getKeyType() != null ? source.getKeyType().getCopier() : null;
-      if (value != null) break;
-    }
-    return value;
+    return key().map(CacheEntryType::getCopier).orElse(null);
+  }
+
+  private Optional<CacheEntryType> key() {
+    return extract(BaseCacheType::getKeyType);
   }
 
   @Override
   public String valueType() {
-    String value = null;
-    for (BaseCacheType source : sources) {
-      value = source.getValueType() != null ? source.getValueType().getValue() : null;
-      if (value != null) break;
-    }
-    if (value == null) {
-      for (BaseCacheType source : sources) {
-        value = JaxbHelper.findDefaultValue(source, "valueType");
-        if (value != null) break;
-      }
-    }
-    return value;
+    return value().map(CacheEntryType::getValue).orElseGet(() -> extract(source -> JaxbHelper.findDefaultValue(source, "keyType")).orElse(null));
   }
 
   @Override
   public String valueSerializer() {
-    String value = null;
-    for (BaseCacheType source : sources) {
-      value = source.getValueType() != null ? source.getValueType().getSerializer() : null;
-      if (value != null) break;
-    }
-    return value;
+    return value().map(CacheEntryType::getSerializer).orElse(null);
   }
 
   @Override
   public String valueCopier() {
-    String value = null;
-    for (BaseCacheType source : sources) {
-      value = source.getValueType() != null ? source.getValueType().getCopier() : null;
-      if (value != null) break;
-    }
-    return value;
+    return value().map(CacheEntryType::getCopier).orElse(null);
+  }
+
+  private Optional<CacheEntryType> value() {
+    return extract(BaseCacheType::getValueType);
   }
 
   @Override
   public String evictionAdvisor() {
-    String value = null;
-    for (BaseCacheType source : sources) {
-      value = source.getEvictionAdvisor();
-      if (value != null) break;
-    }
-    return value;
+    return extract(BaseCacheType::getEvictionAdvisor).orElse(null);
   }
 
   @Override
   public Expiry expiry() {
-    ExpiryType value = null;
-    for (BaseCacheType source : sources) {
-      value = source.getExpiry();
-      if (value != null) break;
-    }
-    if (value != null) {
-      return new Expiry.Impl(value);
-    } else {
-      return null;
-    }
+    return extract(BaseCacheType::getExpiry).map(Expiry.Impl::new).orElse(null);
   }
 
   @Override
   public String loaderWriter() {
-    String configClass = null;
-    for (BaseCacheType source : sources) {
-      final CacheLoaderWriterType loaderWriter = source.getLoaderWriter();
-      if (loaderWriter != null) {
-        configClass = loaderWriter.getClazz();
-        break;
-      }
-    }
-    return configClass;
+    return extract(BaseCacheType::getLoaderWriter).map(CacheLoaderWriterType::getClazz).orElse(null);
   }
 
   @Override
   public String resilienceStrategy() {
-    String resilienceClass = null;
-    for (BaseCacheType source : sources) {
-      resilienceClass = source.getResilience();
-      if (resilienceClass != null) {
-        return resilienceClass;
-      }
-    }
-    return resilienceClass;
+    return extract(BaseCacheType::getResilience).orElse(null);
   }
 
   @Override
@@ -192,18 +136,9 @@ public class BaseCacheSpec implements CacheTemplate {
 
 
   @Override
-  public Iterable<ServiceConfiguration<?>> serviceConfigs() {
-    Map<Class<? extends ServiceConfiguration>, ServiceConfiguration<?>> configsMap =
-      new HashMap<>();
-    for (BaseCacheType source : sources) {
-      for (Element child : source.getServiceConfiguration()) {
-        ServiceConfiguration<?> serviceConfiguration = parseCacheExtension(child);
-        if (!configsMap.containsKey(serviceConfiguration.getClass())) {
-          configsMap.put(serviceConfiguration.getClass(), serviceConfiguration);
-        }
-      }
-    }
-    return configsMap.values();
+  public Iterable<? extends ServiceConfiguration<?>> serviceConfigs() {
+    return sources.stream().flatMap(s -> s.getServiceConfiguration().stream()).map(this::parseCacheExtension)
+      .collect(Collectors.toMap(Object::getClass, identity(), (a, b) -> a)).values();
   }
 
   ServiceConfiguration<?> parseCacheExtension(final Element element) {
@@ -217,18 +152,9 @@ public class BaseCacheSpec implements CacheTemplate {
 
   @Override
   public Collection<ResourcePool> resourcePools() {
-    for (BaseCacheType source : sources) {
-      Heap heapResource = source.getHeap();
-      if (heapResource != null) {
-        return singleton(parseResource(heapResource));
-      } else {
-        ResourcesType resources = source.getResources();
-        if (resources != null) {
-          return parseResources(resources);
-        }
-      }
-    }
-    return emptySet();
+    return extract(s ->
+      ofNullable(s.getHeap()).<Collection<ResourcePool>>map(h -> singleton(parseResource(h))).orElseGet(() ->
+        ofNullable(s.getResources()).map(this::parseResources).orElse(null))).orElse(emptySet());
   }
 
   private Collection<ResourcePool> parseResources(ResourcesType resources) {
@@ -259,33 +185,20 @@ public class BaseCacheSpec implements CacheTemplate {
 
   @Override
   public CacheLoaderWriterType.WriteBehind writeBehind() {
-    for (BaseCacheType source : sources) {
-      final CacheLoaderWriterType loaderWriter = source.getLoaderWriter();
-      final CacheLoaderWriterType.WriteBehind writebehind = loaderWriter != null ? loaderWriter.getWriteBehind() : null;
-      if (writebehind != null) {
-        return writebehind;
-      }
-    }
-    return null;
+    return extract(BaseCacheType::getLoaderWriter).map(CacheLoaderWriterType::getWriteBehind).orElse(null);
   }
 
   @Override
   public DiskStoreSettingsType diskStoreSettings() {
-    DiskStoreSettingsType value = null;
-    for (BaseCacheType source : sources) {
-      value = source.getDiskStoreSettings();
-      if (value != null) break;
-    }
-    return value;
+    return extract(BaseCacheType::getDiskStoreSettings).orElse(null);
   }
 
   @Override
   public SizeOfEngineLimits heapStoreSettings() {
-    SizeofType sizeofType = null;
-    for (BaseCacheType source : sources) {
-      sizeofType = source.getHeapStoreSettings();
-      if (sizeofType != null) break;
-    }
-    return sizeofType != null ? new SizeOfEngineLimits.Impl(sizeofType) : null;
+    return extract(BaseCacheType::getHeapStoreSettings).map(SizeOfEngineLimits.Impl::new).orElse(null);
+  }
+
+  private <T> Optional<T> extract(Function<BaseCacheType, T> extractor) {
+    return sources.stream().map(s -> ofNullable(extractor.apply(s))).filter(Optional::isPresent).map(Optional::get).findFirst();
   }
 }
