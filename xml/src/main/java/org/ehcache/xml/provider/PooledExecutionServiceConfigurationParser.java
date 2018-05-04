@@ -16,20 +16,16 @@
 
 package org.ehcache.xml.provider;
 
-import org.ehcache.config.builders.ConfigurationBuilder;
 import org.ehcache.impl.config.executor.PooledExecutionServiceConfiguration;
-import org.ehcache.xml.CoreServiceCreationConfigurationParser;
 import org.ehcache.xml.model.ConfigType;
 import org.ehcache.xml.model.ThreadPoolsType;
 
-public class PooledExecutionServiceConfigurationParser implements CoreServiceCreationConfigurationParser {
+public class PooledExecutionServiceConfigurationParser extends SimpleCoreServiceCreationConfigurationParser<ThreadPoolsType> {
 
-  @Override
-  public ConfigurationBuilder parseServiceCreationConfiguration(ConfigType root, ClassLoader classLoader, ConfigurationBuilder builder) {
-    ThreadPoolsType threadPoolsType = root.getThreadPools();
-    if (threadPoolsType != null) {
+  public PooledExecutionServiceConfigurationParser() {
+    super(ConfigType::getThreadPools, config -> {
       PooledExecutionServiceConfiguration poolsConfiguration = new PooledExecutionServiceConfiguration();
-      for (ThreadPoolsType.ThreadPool pool : threadPoolsType.getThreadPool()) {
+      for (ThreadPoolsType.ThreadPool pool : config.getThreadPool()) {
         if (pool.isDefault()) {
           poolsConfiguration.addDefaultPool(pool.getAlias(), pool.getMinSize().intValue(), pool.getMaxSize().intValue());
         } else {
@@ -37,9 +33,7 @@ public class PooledExecutionServiceConfigurationParser implements CoreServiceCre
         }
       }
 
-      builder = builder.addService(poolsConfiguration);
-    }
-
-    return builder;
+      return poolsConfiguration;
+    });
   }
 }

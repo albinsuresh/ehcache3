@@ -16,32 +16,21 @@
 
 package org.ehcache.xml.provider;
 
-import org.ehcache.config.builders.ConfigurationBuilder;
-import org.ehcache.xml.CoreServiceCreationConfigurationParser;
 import org.ehcache.xml.exceptions.XmlConfigurationException;
 import org.ehcache.xml.model.ConfigType;
 import org.ehcache.xml.model.SerializerType;
 
 import static org.ehcache.xml.XmlConfiguration.getClassForName;
 
-public class DefaultSerializationProviderConfigurationParser implements CoreServiceCreationConfigurationParser {
+public class DefaultSerializationProviderConfigurationParser extends SimpleCoreServiceCreationConfigurationParser<SerializerType> {
 
-  @Override
-  public ConfigurationBuilder parseServiceCreationConfiguration(ConfigType root, ClassLoader classLoader, ConfigurationBuilder builder) {
-    SerializerType serializerType = root.getDefaultSerializers();
-    if (serializerType != null) {
+  public DefaultSerializationProviderConfigurationParser() {
+    super(ConfigType::getDefaultSerializers, (config, loader) -> {
       org.ehcache.impl.config.serializer.DefaultSerializationProviderConfiguration configuration = new org.ehcache.impl.config.serializer.DefaultSerializationProviderConfiguration();
-
-      for (SerializerType.Serializer serializer : serializerType.getSerializer()) {
-        try {
-          configuration.addSerializerFor(getClassForName(serializer.getType(), classLoader), (Class) getClassForName(serializer.getValue(), classLoader));
-        } catch (ClassNotFoundException e) {
-          throw new XmlConfigurationException(e);
-        }
+      for (SerializerType.Serializer serializer : config.getSerializer()) {
+        configuration.addSerializerFor(getClassForName(serializer.getType(), loader), (Class) getClassForName(serializer.getValue(), loader));
       }
-      builder = builder.addService(configuration);
-    }
-
-    return builder;
+      return configuration;
+    });
   }
 }

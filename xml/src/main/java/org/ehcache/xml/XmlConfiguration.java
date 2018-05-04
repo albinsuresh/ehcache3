@@ -67,10 +67,9 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
+import static java.util.Arrays.asList;
 import static org.ehcache.config.builders.CacheConfigurationBuilder.newCacheConfigurationBuilder;
 import static org.ehcache.config.builders.ConfigurationBuilder.newConfigurationBuilder;
 import static org.ehcache.config.builders.ResourcePoolsBuilder.newResourcePoolsBuilder;
@@ -89,8 +88,26 @@ public class XmlConfiguration implements Configuration {
   private final Configuration configuration;
   private final Map<String, CacheTemplate> templates = new HashMap<>();
 
-  private final Set<CoreServiceCreationConfigurationParser> coreServiceProviderConfigParsers = new HashSet<>();
-  private final Set<CoreServiceConfigurationParser> coreServiceConfigParsers = new HashSet<>();
+  private static final Collection<CoreServiceCreationConfigurationParser> CORE_SERVICE_CREATION_CONFIGURATION_PARSERS = asList(
+    new DefaultCopiersConfigurationParser(),
+    new DefaultSerializationProviderConfigurationParser(),
+    new OffHeapDiskStoreProviderConfigurationParser(),
+    new CacheEventDispatcherFactoryConfigurationParser(),
+    new DefaultSizeOfEngineProviderConfigurationParser(),
+    new CacheManagerPersistenceConfigurationParser(),
+    new PooledExecutionServiceConfigurationParser(),
+    new WriteBehindProviderConfigurationParser()
+  );
+
+  private static final Collection<CoreServiceConfigurationParser> CORE_SERVICE_CONFIGURATION_PARSERS = asList(
+    new DefaultCacheLoaderWriterConfigurationParser(),
+    new DefaultResilienceStrategyConfigurationParser(),
+    new DefaultSizeOfEngineConfigurationParser(),
+    new DefaultWriteBehindConfigurationParser(),
+    new OffHeapDiskStoreConfigurationParser(),
+    new DefaultCacheEventDispatcherConfigurationParser(),
+    new DefaultCacheEventListenerConfigurationParser()
+  );
 
   /**
    * Constructs an instance of XmlConfiguration mapping to the XML file located at {@code url}
@@ -149,23 +166,6 @@ public class XmlConfiguration implements Configuration {
     }
     this.xml = url;
 
-    coreServiceProviderConfigParsers.add(new DefaultCopiersConfigurationParser());
-    coreServiceProviderConfigParsers.add(new DefaultSerializationProviderConfigurationParser());
-    coreServiceProviderConfigParsers.add(new OffHeapDiskStoreProviderConfigurationParser());
-    coreServiceProviderConfigParsers.add(new CacheEventDispatcherFactoryConfigurationParser());
-    coreServiceProviderConfigParsers.add(new DefaultSizeOfEngineProviderConfigurationParser());
-    coreServiceProviderConfigParsers.add(new CacheManagerPersistenceConfigurationParser());
-    coreServiceProviderConfigParsers.add(new PooledExecutionServiceConfigurationParser());
-    coreServiceProviderConfigParsers.add(new WriteBehindProviderConfigurationParser());
-
-    coreServiceConfigParsers.add(new DefaultCacheLoaderWriterConfigurationParser());
-    coreServiceConfigParsers.add(new DefaultResilienceStrategyConfigurationParser());
-    coreServiceConfigParsers.add(new DefaultSizeOfEngineConfigurationParser());
-    coreServiceConfigParsers.add(new DefaultWriteBehindConfigurationParser());
-    coreServiceConfigParsers.add(new OffHeapDiskStoreConfigurationParser());
-    coreServiceConfigParsers.add(new DefaultCacheEventDispatcherConfigurationParser());
-    coreServiceConfigParsers.add(new DefaultCacheEventListenerConfigurationParser());
-
     try {
       configuration = parseConfiguration(xml, classLoader, cacheClassLoaders);
     } catch (XmlConfigurationException e) {
@@ -185,7 +185,8 @@ public class XmlConfiguration implements Configuration {
     managerBuilder = managerBuilder.withClassLoader(classLoader);
 
     ConfigType configRoot = configurationParser.getConfigRoot();
-    for (CoreServiceCreationConfigurationParser parser : coreServiceProviderConfigParsers) {
+
+    for (CoreServiceCreationConfigurationParser parser : CORE_SERVICE_CREATION_CONFIGURATION_PARSERS) {
       managerBuilder = parser.parseServiceCreationConfiguration(configRoot, classLoader, managerBuilder);
     }
 
@@ -437,7 +438,7 @@ public class XmlConfiguration implements Configuration {
       cacheBuilder = cacheBuilder.withExpiry(getExpiry(cacheClassLoader, parsedExpiry));
     }
 
-    for (CoreServiceConfigurationParser coreServiceConfigParser : coreServiceConfigParsers) {
+    for (CoreServiceConfigurationParser coreServiceConfigParser : CORE_SERVICE_CONFIGURATION_PARSERS) {
       cacheBuilder = coreServiceConfigParser.parseServiceConfiguration(cacheDefinition, cacheClassLoader, cacheBuilder);
     }
 

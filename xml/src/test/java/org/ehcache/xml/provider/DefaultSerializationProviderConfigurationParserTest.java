@@ -49,7 +49,7 @@ public class DefaultSerializationProviderConfigurationParserTest {
   ConfigurationBuilder managerBuilder = newConfigurationBuilder();
 
   @Test
-  public void parseServiceCreationConfiguration() throws SAXException, JAXBException, ParserConfigurationException, IOException {
+  public void parseServiceCreationConfiguration() throws SAXException, JAXBException, ParserConfigurationException, IOException, ClassNotFoundException {
     final URL resource = XmlConfigurationTest.class.getResource("/configs/default-serializer.xml");
     ConfigurationParser rootParser = new ConfigurationParser(resource.toExternalForm());
 

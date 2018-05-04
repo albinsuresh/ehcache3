@@ -16,23 +16,15 @@
 
 package org.ehcache.xml.provider;
 
-import org.ehcache.config.builders.ConfigurationBuilder;
 import org.ehcache.impl.config.persistence.CacheManagerPersistenceConfiguration;
-import org.ehcache.xml.CoreServiceCreationConfigurationParser;
 import org.ehcache.xml.model.ConfigType;
 import org.ehcache.xml.model.PersistenceType;
 
 import java.io.File;
 
-public class CacheManagerPersistenceConfigurationParser implements CoreServiceCreationConfigurationParser {
+public class CacheManagerPersistenceConfigurationParser extends SimpleCoreServiceCreationConfigurationParser<PersistenceType> {
 
-  @Override
-  public ConfigurationBuilder parseServiceCreationConfiguration(ConfigType root, ClassLoader classLoader, ConfigurationBuilder builder) {
-    PersistenceType persistenceType = root.getPersistence();
-    if (persistenceType != null) {
-      builder = builder.addService(new CacheManagerPersistenceConfiguration(new File(persistenceType.getDirectory())));
-    }
-
-    return builder;
+  public CacheManagerPersistenceConfigurationParser() {
+    super(ConfigType::getPersistence, config -> new CacheManagerPersistenceConfiguration(new File(config.getDirectory())));
   }
 }

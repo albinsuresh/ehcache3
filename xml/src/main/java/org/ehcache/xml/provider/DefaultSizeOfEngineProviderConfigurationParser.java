@@ -16,24 +16,20 @@
 
 package org.ehcache.xml.provider;
 
-import org.ehcache.config.builders.ConfigurationBuilder;
 import org.ehcache.impl.config.store.heap.DefaultSizeOfEngineProviderConfiguration;
-import org.ehcache.xml.CoreServiceCreationConfigurationParser;
 import org.ehcache.xml.model.ConfigType;
 import org.ehcache.xml.model.SizeOfEngineLimits;
 import org.ehcache.xml.model.SizeofType;
 
-public class DefaultSizeOfEngineProviderConfigurationParser implements CoreServiceCreationConfigurationParser {
+public class DefaultSizeOfEngineProviderConfigurationParser extends SimpleCoreServiceCreationConfigurationParser<SizeofType> {
 
-  @Override
-  public ConfigurationBuilder parseServiceCreationConfiguration(ConfigType root, ClassLoader classLoader, ConfigurationBuilder builder) {
-    SizeofType sizeofType = root.getHeapStore();
-    if (sizeofType != null) {
-      SizeOfEngineLimits sizeOfEngineLimits = new SizeOfEngineLimits.Impl(sizeofType);
-      builder = builder.addService(new DefaultSizeOfEngineProviderConfiguration(
-        sizeOfEngineLimits.getMaxObjectSize(), sizeOfEngineLimits.getUnit(), sizeOfEngineLimits.getMaxObjectGraphSize()));
-    }
-
-    return builder;
+  public DefaultSizeOfEngineProviderConfigurationParser() {
+    super(ConfigType::getHeapStore, config -> {
+      SizeOfEngineLimits sizeOfEngineLimits = new SizeOfEngineLimits.Impl(config);
+      return new DefaultSizeOfEngineProviderConfiguration(
+        sizeOfEngineLimits.getMaxObjectSize(),
+        sizeOfEngineLimits.getUnit(),
+        sizeOfEngineLimits.getMaxObjectGraphSize());
+    });
   }
 }

@@ -16,21 +16,13 @@
 
 package org.ehcache.xml.provider;
 
-import org.ehcache.config.builders.ConfigurationBuilder;
 import org.ehcache.impl.config.loaderwriter.writebehind.WriteBehindProviderConfiguration;
-import org.ehcache.xml.CoreServiceCreationConfigurationParser;
 import org.ehcache.xml.model.ConfigType;
 import org.ehcache.xml.model.ThreadPoolReferenceType;
 
-public class WriteBehindProviderConfigurationParser implements CoreServiceCreationConfigurationParser {
+public class WriteBehindProviderConfigurationParser extends SimpleCoreServiceCreationConfigurationParser<ThreadPoolReferenceType> {
 
-  @Override
-  public ConfigurationBuilder parseServiceCreationConfiguration(ConfigType root, ClassLoader classLoader, ConfigurationBuilder builder) {
-    ThreadPoolReferenceType threadPoolReferenceType = root.getWriteBehind();
-    if (threadPoolReferenceType != null) {
-      builder = builder.addService(new WriteBehindProviderConfiguration(threadPoolReferenceType.getThreadPool()));
-    }
-
-    return builder;
+  public WriteBehindProviderConfigurationParser() {
+    super(ConfigType::getWriteBehind, config -> new WriteBehindProviderConfiguration(config.getThreadPool()));
   }
 }

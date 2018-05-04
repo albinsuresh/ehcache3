@@ -16,22 +16,13 @@
 
 package org.ehcache.xml.service;
 
-import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.impl.config.store.disk.OffHeapDiskStoreConfiguration;
-import org.ehcache.xml.CoreServiceConfigurationParser;
 import org.ehcache.xml.model.CacheTemplate;
 import org.ehcache.xml.model.DiskStoreSettingsType;
 
-public class OffHeapDiskStoreConfigurationParser<K, V> implements CoreServiceConfigurationParser<K, V> {
+public class OffHeapDiskStoreConfigurationParser extends SimpleCoreServiceConfigurationParser<DiskStoreSettingsType> {
 
-  @Override
-  public CacheConfigurationBuilder<K, V> parseServiceConfiguration(CacheTemplate cacheDefinition, ClassLoader cacheClassLoader,
-                                                                   CacheConfigurationBuilder<K, V> cacheBuilder) {
-    final DiskStoreSettingsType parsedDiskStoreSettings = cacheDefinition.diskStoreSettings();
-    if (parsedDiskStoreSettings != null) {
-      cacheBuilder = cacheBuilder.add(new OffHeapDiskStoreConfiguration(parsedDiskStoreSettings.getThreadPool(),
-        parsedDiskStoreSettings.getWriterConcurrency().intValue(), parsedDiskStoreSettings.getDiskSegments().intValue()));
-    }
-    return cacheBuilder;
+  public OffHeapDiskStoreConfigurationParser() {
+    super(CacheTemplate::diskStoreSettings, config -> new OffHeapDiskStoreConfiguration(config.getThreadPool(), config.getWriterConcurrency().intValue(), config.getDiskSegments().intValue()));
   }
 }

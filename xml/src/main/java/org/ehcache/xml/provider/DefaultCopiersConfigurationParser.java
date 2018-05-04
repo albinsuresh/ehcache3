@@ -16,34 +16,22 @@
 
 package org.ehcache.xml.provider;
 
-import org.ehcache.config.builders.ConfigurationBuilder;
 import org.ehcache.impl.config.copy.DefaultCopyProviderConfiguration;
-import org.ehcache.xml.CoreServiceCreationConfigurationParser;
 import org.ehcache.xml.exceptions.XmlConfigurationException;
 import org.ehcache.xml.model.ConfigType;
 import org.ehcache.xml.model.CopierType;
 
 import static org.ehcache.xml.XmlConfiguration.getClassForName;
 
-public class DefaultCopiersConfigurationParser implements CoreServiceCreationConfigurationParser {
+public class DefaultCopiersConfigurationParser extends SimpleCoreServiceCreationConfigurationParser<CopierType> {
 
-  @Override
-  public ConfigurationBuilder parseServiceCreationConfiguration(ConfigType root, ClassLoader classLoader, ConfigurationBuilder builder) {
-    CopierType copierType = root.getDefaultCopiers();
-    if (copierType != null) {
+  public DefaultCopiersConfigurationParser() {
+    super(ConfigType::getDefaultCopiers, (config, loader) -> {
       DefaultCopyProviderConfiguration configuration = new DefaultCopyProviderConfiguration();
-
-      for (CopierType.Copier copier : copierType.getCopier()) {
-        try {
-          configuration.addCopierFor(getClassForName(copier.getType(), classLoader), (Class) getClassForName(copier.getValue(), classLoader));
-        } catch (ClassNotFoundException e) {
-          throw new XmlConfigurationException(e);
-        }
+      for (CopierType.Copier copier : config.getCopier()) {
+        configuration.addCopierFor(getClassForName(copier.getType(), loader), (Class) getClassForName(copier.getValue(), loader));
       }
-
-      builder = builder.addService(configuration);
-    }
-
-    return builder;
+      return configuration;
+    });
   }
 }

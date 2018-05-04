@@ -16,21 +16,13 @@
 
 package org.ehcache.xml.provider;
 
-import org.ehcache.config.builders.ConfigurationBuilder;
 import org.ehcache.impl.config.event.CacheEventDispatcherFactoryConfiguration;
-import org.ehcache.xml.CoreServiceCreationConfigurationParser;
 import org.ehcache.xml.model.ConfigType;
 import org.ehcache.xml.model.ThreadPoolReferenceType;
 
-public class CacheEventDispatcherFactoryConfigurationParser implements CoreServiceCreationConfigurationParser {
+public class CacheEventDispatcherFactoryConfigurationParser extends SimpleCoreServiceCreationConfigurationParser<ThreadPoolReferenceType> {
 
-  @Override
-  public ConfigurationBuilder parseServiceCreationConfiguration(ConfigType root, ClassLoader classLoader, ConfigurationBuilder builder) {
-    ThreadPoolReferenceType threadPoolReferenceType = root.getEventDispatch();
-    if (threadPoolReferenceType != null) {
-      builder = builder.addService(new CacheEventDispatcherFactoryConfiguration(threadPoolReferenceType.getThreadPool()));
-    }
-
-    return builder;
+  public CacheEventDispatcherFactoryConfigurationParser() {
+    super(ConfigType::getEventDispatch, config -> new CacheEventDispatcherFactoryConfiguration(config.getThreadPool()));
   }
 }

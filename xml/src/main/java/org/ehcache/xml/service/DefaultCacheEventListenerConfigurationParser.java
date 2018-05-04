@@ -22,51 +22,30 @@ import org.ehcache.event.CacheEventListener;
 import org.ehcache.event.EventFiring;
 import org.ehcache.event.EventOrdering;
 import org.ehcache.xml.CoreServiceConfigurationParser;
+import org.ehcache.xml.exceptions.XmlConfigurationException;
 import org.ehcache.xml.model.CacheTemplate;
 import org.ehcache.xml.model.EventType;
 import org.ehcache.xml.model.ListenersConfig;
 import org.ehcache.xml.model.ListenersType;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.stream.Collectors.toSet;
 import static org.ehcache.xml.XmlConfiguration.getClassForName;
 
-public class DefaultCacheEventListenerConfigurationParser<K, V> implements CoreServiceConfigurationParser<K, V> {
+public class DefaultCacheEventListenerConfigurationParser implements CoreServiceConfigurationParser {
 
   @Override
-  public CacheConfigurationBuilder<K, V> parseServiceConfiguration(CacheTemplate cacheDefinition, ClassLoader cacheClassLoader,
-                                                                   CacheConfigurationBuilder<K, V> cacheBuilder) throws ClassNotFoundException {
+  public <K, V> CacheConfigurationBuilder<K, V> parseServiceConfiguration(CacheTemplate cacheDefinition, ClassLoader cacheClassLoader,
+                                                                          CacheConfigurationBuilder<K, V> cacheBuilder) throws ClassNotFoundException {
     ListenersConfig listenersConfig = cacheDefinition.listenersConfig();
     if(listenersConfig != null && listenersConfig.listeners() != null) {
       for (ListenersType.Listener listener : listenersConfig.listeners()) {
+        Set<org.ehcache.event.EventType> eventSetToFireOn = listener.getEventsToFireOn().stream()
+          .map(EventType::value).map(org.ehcache.event.EventType::valueOf).collect(toSet());
         @SuppressWarnings("unchecked")
-        final Class<CacheEventListener<?, ?>> cacheEventListenerClass =
-          (Class<CacheEventListener<?, ?>>) getClassForName(listener.getClazz(), cacheClassLoader);
-        final List<EventType> eventListToFireOn = listener.getEventsToFireOn();
-        Set<org.ehcache.event.EventType> eventSetToFireOn = new HashSet<>();
-        for (EventType events : eventListToFireOn) {
-          switch (events) {
-            case CREATED:
-              eventSetToFireOn.add(org.ehcache.event.EventType.CREATED);
-              break;
-            case EVICTED:
-              eventSetToFireOn.add(org.ehcache.event.EventType.EVICTED);
-              break;
-            case EXPIRED:
-              eventSetToFireOn.add(org.ehcache.event.EventType.EXPIRED);
-              break;
-            case UPDATED:
-              eventSetToFireOn.add(org.ehcache.event.EventType.UPDATED);
-              break;
-            case REMOVED:
-              eventSetToFireOn.add(org.ehcache.event.EventType.REMOVED);
-              break;
-            default:
-              throw new IllegalArgumentException("Invalid Event Type provided");
-          }
-        }
+        Class<CacheEventListener<?, ?>> cacheEventListenerClass = (Class<CacheEventListener<?, ?>>) getClassForName(listener.getClazz(), cacheClassLoader);
         CacheEventListenerConfigurationBuilder listenerBuilder = CacheEventListenerConfigurationBuilder
           .newEventListenerConfiguration(cacheEventListenerClass, eventSetToFireOn)
           .firingMode(EventFiring.valueOf(listener.getEventFiringMode().value()))

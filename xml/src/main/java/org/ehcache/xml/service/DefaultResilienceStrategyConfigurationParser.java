@@ -16,24 +16,16 @@
 
 package org.ehcache.xml.service;
 
-import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.impl.config.resilience.DefaultResilienceStrategyConfiguration;
 import org.ehcache.spi.resilience.ResilienceStrategy;
-import org.ehcache.xml.CoreServiceConfigurationParser;
+import org.ehcache.xml.exceptions.XmlConfigurationException;
 import org.ehcache.xml.model.CacheTemplate;
 
 import static org.ehcache.xml.XmlConfiguration.getClassForName;
 
-public class DefaultResilienceStrategyConfigurationParser<K, V> implements CoreServiceConfigurationParser<K, V> {
+public class DefaultResilienceStrategyConfigurationParser extends SimpleCoreServiceConfigurationParser<String> {
 
-  @Override
-  public CacheConfigurationBuilder<K, V> parseServiceConfiguration(CacheTemplate cacheDefinition, ClassLoader cacheClassLoader,
-                                                                   CacheConfigurationBuilder<K, V> cacheBuilder) throws ClassNotFoundException {
-    if (cacheDefinition.resilienceStrategy() != null) {
-      Class<ResilienceStrategy<?, ?>> resilienceStrategyClass = (Class<ResilienceStrategy<?, ?>>) getClassForName(cacheDefinition.resilienceStrategy(), cacheClassLoader);
-      cacheBuilder = cacheBuilder.add(new DefaultResilienceStrategyConfiguration(resilienceStrategyClass));
-    }
-
-    return cacheBuilder;
+  public DefaultResilienceStrategyConfigurationParser() {
+    super(CacheTemplate::resilienceStrategy, (config, loader) -> new DefaultResilienceStrategyConfiguration((Class<? extends ResilienceStrategy>) getClassForName(config, loader)));
   }
 }

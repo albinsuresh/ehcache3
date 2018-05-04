@@ -16,21 +16,13 @@
 
 package org.ehcache.xml.service;
 
-import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.impl.config.store.heap.DefaultSizeOfEngineConfiguration;
-import org.ehcache.xml.CoreServiceConfigurationParser;
 import org.ehcache.xml.model.CacheTemplate;
+import org.ehcache.xml.model.SizeOfEngineLimits;
 
-public class DefaultSizeOfEngineConfigurationParser<K, V> implements CoreServiceConfigurationParser<K, V> {
+public class DefaultSizeOfEngineConfigurationParser extends SimpleCoreServiceConfigurationParser<SizeOfEngineLimits> {
 
-  @Override
-  public CacheConfigurationBuilder<K, V> parseServiceConfiguration(CacheTemplate cacheDefinition, ClassLoader cacheClassLoader,
-                                                                   CacheConfigurationBuilder<K, V> cacheBuilder) {
-    if (cacheDefinition.heapStoreSettings() != null) {
-      cacheBuilder = cacheBuilder.add(new DefaultSizeOfEngineConfiguration(cacheDefinition.heapStoreSettings().getMaxObjectSize(),
-        cacheDefinition.heapStoreSettings().getUnit(), cacheDefinition.heapStoreSettings().getMaxObjectGraphSize()));
-    }
-
-    return cacheBuilder;
+  public DefaultSizeOfEngineConfigurationParser() {
+    super(CacheTemplate::heapStoreSettings, config -> new DefaultSizeOfEngineConfiguration(config.getMaxObjectSize(), config.getUnit(), config.getMaxObjectGraphSize()));
   }
 }

@@ -22,11 +22,11 @@ import org.ehcache.xml.CoreServiceConfigurationParser;
 import org.ehcache.xml.model.CacheTemplate;
 import org.ehcache.xml.model.ListenersConfig;
 
-public class DefaultCacheEventDispatcherConfigurationParser<K, V> implements CoreServiceConfigurationParser<K, V> {
+public class DefaultCacheEventDispatcherConfigurationParser implements CoreServiceConfigurationParser {
 
   @Override
-  public CacheConfigurationBuilder<K, V> parseServiceConfiguration(CacheTemplate cacheDefinition, ClassLoader cacheClassLoader,
-                                                                   CacheConfigurationBuilder<K, V> cacheBuilder) {
+  public <K, V> CacheConfigurationBuilder<K, V> parseServiceConfiguration(CacheTemplate cacheDefinition, ClassLoader cacheClassLoader,
+                                                                          CacheConfigurationBuilder<K, V> cacheBuilder) {
     ListenersConfig listenersConfig = cacheDefinition.listenersConfig();
     if(listenersConfig != null && listenersConfig.threadPool() != null) {
       cacheBuilder = cacheBuilder.add(new DefaultCacheEventDispatcherConfiguration(listenersConfig.threadPool()));

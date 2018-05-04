@@ -42,7 +42,7 @@ public class OffHeapDiskStoreProviderConfigurationParserTest {
   ConfigurationBuilder managerBuilder = newConfigurationBuilder();
 
   @Test
-  public void parseServiceCreationConfiguration() throws SAXException, JAXBException, ParserConfigurationException, IOException {
+  public void parseServiceCreationConfiguration() throws SAXException, JAXBException, ParserConfigurationException, IOException, ClassNotFoundException {
     final URL resource = XmlConfigurationTest.class.getResource("/configs/resources-caches.xml");
     ConfigurationParser rootParser = new ConfigurationParser(resource.toExternalForm());
 

@@ -23,12 +23,6 @@ import org.ehcache.xml.model.CacheTemplate;
 import org.ehcache.xml.model.CacheTemplateType;
 import org.ehcache.xml.model.CacheType;
 import org.ehcache.xml.model.ConfigType;
-import org.ehcache.xml.model.CopierType;
-import org.ehcache.xml.model.PersistenceType;
-import org.ehcache.xml.model.SerializerType;
-import org.ehcache.xml.model.ServiceType;
-import org.ehcache.xml.model.SizeOfEngineLimits;
-import org.ehcache.xml.model.SizeofType;
 import org.ehcache.spi.service.ServiceCreationConfiguration;
 import org.ehcache.core.internal.util.ClassLoading;
 import org.w3c.dom.Element;
@@ -64,9 +58,6 @@ import java.util.Properties;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.ehcache.xml.model.ThreadPoolReferenceType;
-import org.ehcache.xml.model.ThreadPoolsType;
 
 /**
  * Provides support for parsing a cache configuration expressed in XML.
@@ -184,44 +175,6 @@ public class ConfigurationParser {
       }
     }
   }
-
-  public Iterable<ServiceType> getServiceElements() {
-    return config.getService();
-  }
-
-  public SerializerType getDefaultSerializers() {
-    return config.getDefaultSerializers();
-  }
-
-  public CopierType getDefaultCopiers() {
-    return config.getDefaultCopiers();
-  }
-
-  public PersistenceType getPersistence() {
-    return config.getPersistence();
-  }
-
-  public ThreadPoolReferenceType getEventDispatch() {
-    return config.getEventDispatch();
-  }
-
-  public ThreadPoolReferenceType getWriteBehind() {
-    return config.getWriteBehind();
-  }
-
-  public ThreadPoolReferenceType getDiskStore() {
-    return config.getDiskStore();
-  }
-
-  public ThreadPoolsType getThreadPools() {
-    return config.getThreadPools();
-  }
-
-  public SizeOfEngineLimits getHeapStore() {
-    SizeofType type = config.getHeapStore();
-    return type == null ? null : new SizeOfEngineLimits.Impl(type);
-  }
-
   public Iterable<CacheDefinition> getCacheElements() {
     List<CacheDefinition> cacheCfgs = new ArrayList<>();
     final List<BaseCacheType> cacheOrCacheTemplate = config.getCacheOrCacheTemplate();

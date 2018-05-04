@@ -19,8 +19,9 @@ package org.ehcache.xml;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.xml.model.CacheTemplate;
 
-public interface CoreServiceConfigurationParser<K, V> {
+@FunctionalInterface
+public interface CoreServiceConfigurationParser {
 
-  CacheConfigurationBuilder<K, V> parseServiceConfiguration(CacheTemplate cacheDefinition, ClassLoader cacheClassLoader,
-                                                            CacheConfigurationBuilder<K, V> cacheBuilder) throws ClassNotFoundException;
+  <K, V> CacheConfigurationBuilder<K, V> parseServiceConfiguration(CacheTemplate cacheDefinition, ClassLoader cacheClassLoader,
+                                                                   CacheConfigurationBuilder<K, V> cacheBuilder) throws ClassNotFoundException;
 }

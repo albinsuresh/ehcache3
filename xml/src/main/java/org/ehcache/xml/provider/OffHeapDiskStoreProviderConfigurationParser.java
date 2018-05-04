@@ -16,21 +16,13 @@
 
 package org.ehcache.xml.provider;
 
-import org.ehcache.config.builders.ConfigurationBuilder;
 import org.ehcache.impl.config.store.disk.OffHeapDiskStoreProviderConfiguration;
-import org.ehcache.xml.CoreServiceCreationConfigurationParser;
 import org.ehcache.xml.model.ConfigType;
 import org.ehcache.xml.model.ThreadPoolReferenceType;
 
-public class OffHeapDiskStoreProviderConfigurationParser implements CoreServiceCreationConfigurationParser {
+public class OffHeapDiskStoreProviderConfigurationParser extends SimpleCoreServiceCreationConfigurationParser<ThreadPoolReferenceType> {
 
-  @Override
-  public ConfigurationBuilder parseServiceCreationConfiguration(ConfigType root, ClassLoader classLoader, ConfigurationBuilder builder) {
-    ThreadPoolReferenceType threadPoolReferenceType = root.getDiskStore();
-    if (threadPoolReferenceType != null) {
-      builder = builder.addService(new OffHeapDiskStoreProviderConfiguration(threadPoolReferenceType.getThreadPool()));
-    }
-
-    return builder;
+  public OffHeapDiskStoreProviderConfigurationParser() {
+    super(ConfigType::getDiskStore, config -> new OffHeapDiskStoreProviderConfiguration(config.getThreadPool()));
   }
 }
