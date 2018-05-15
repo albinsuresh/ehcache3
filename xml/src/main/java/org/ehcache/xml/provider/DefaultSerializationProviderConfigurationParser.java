@@ -21,17 +21,34 @@ import org.ehcache.xml.exceptions.XmlConfigurationException;
 import org.ehcache.xml.model.ConfigType;
 import org.ehcache.xml.model.SerializerType;
 
+import java.util.List;
+
 import static org.ehcache.xml.XmlConfiguration.getClassForName;
 
-public class DefaultSerializationProviderConfigurationParser extends SimpleCoreServiceCreationConfigurationParser<SerializerType> {
+public class DefaultSerializationProviderConfigurationParser
+  extends SimpleCoreServiceCreationConfigurationParser<SerializerType, DefaultSerializationProviderConfiguration> {
 
   public DefaultSerializationProviderConfigurationParser() {
-    super(ConfigType::getDefaultSerializers, (config, loader) -> {
-      DefaultSerializationProviderConfiguration configuration = new DefaultSerializationProviderConfiguration();
-      for (SerializerType.Serializer serializer : config.getSerializer()) {
-        configuration.addSerializerFor(getClassForName(serializer.getType(), loader), (Class) getClassForName(serializer.getValue(), loader));
+    super(ConfigType::getDefaultSerializers,
+      (config, loader) -> {
+        DefaultSerializationProviderConfiguration configuration = new DefaultSerializationProviderConfiguration();
+        for (SerializerType.Serializer serializer : config.getSerializer()) {
+          configuration.addSerializerFor(getClassForName(serializer.getType(), loader), (Class) getClassForName(serializer.getValue(), loader));
+        }
+        return configuration;
+      },
+      DefaultSerializationProviderConfiguration.class,
+      (configType, config) -> {
+        SerializerType serializerType = new SerializerType();
+        List<SerializerType.Serializer> serializers = serializerType.getSerializer();
+        config.getDefaultSerializers().forEach((clazz, serializerClazz) -> {
+          SerializerType.Serializer serializer = new SerializerType.Serializer();
+          serializer.setType(clazz.getName());
+          serializer.setValue(serializerClazz.getName());
+          serializers.add(serializer);
+        });
+        configType.setDefaultSerializers(serializerType);
       }
-      return configuration;
-    });
+    );
   }
 }

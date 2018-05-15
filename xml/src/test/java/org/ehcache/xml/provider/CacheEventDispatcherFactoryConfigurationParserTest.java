@@ -17,8 +17,10 @@
 package org.ehcache.xml.provider;
 
 import org.ehcache.config.Configuration;
+import org.ehcache.config.builders.ConfigurationBuilder;
 import org.ehcache.impl.config.event.CacheEventDispatcherFactoryConfiguration;
 import org.ehcache.spi.service.ServiceCreationConfiguration;
+import org.ehcache.xml.model.ConfigType;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 
@@ -46,6 +48,15 @@ public class CacheEventDispatcherFactoryConfigurationParserTest extends ServiceP
 
     CacheEventDispatcherFactoryConfiguration providerConfiguration = (CacheEventDispatcherFactoryConfiguration) configuration;
     assertThat(providerConfiguration.getThreadPoolAlias()).isEqualTo("events-pool");
+  }
 
+  @Test
+  public void unparseServiceCreationConfiguration() {
+    ConfigType configType = new ConfigType();
+    Configuration config = ConfigurationBuilder.newConfigurationBuilder()
+      .addService(new CacheEventDispatcherFactoryConfiguration("foo")).build();
+    parser.unparseServiceCreationConfiguration(configType, config);
+
+    assertThat(configType.getEventDispatch().getThreadPool()).isEqualTo("foo");
   }
 }

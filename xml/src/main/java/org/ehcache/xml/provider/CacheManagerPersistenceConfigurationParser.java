@@ -22,9 +22,15 @@ import org.ehcache.xml.model.PersistenceType;
 
 import java.io.File;
 
-public class CacheManagerPersistenceConfigurationParser extends SimpleCoreServiceCreationConfigurationParser<PersistenceType> {
+public class CacheManagerPersistenceConfigurationParser
+  extends SimpleCoreServiceCreationConfigurationParser<PersistenceType, CacheManagerPersistenceConfiguration> {
 
   public CacheManagerPersistenceConfigurationParser() {
-    super(ConfigType::getPersistence, config -> new CacheManagerPersistenceConfiguration(new File(config.getDirectory())));
+    super(ConfigType::getPersistence, config -> new CacheManagerPersistenceConfiguration(new File(config.getDirectory())),
+      CacheManagerPersistenceConfiguration.class, (configType, config) -> {
+        PersistenceType persistenceType = new PersistenceType();
+        persistenceType.setDirectory(config.getRootDirectory().toString());
+        configType.setPersistence(persistenceType);
+      });
   }
 }

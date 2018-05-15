@@ -20,20 +20,41 @@ import org.ehcache.impl.config.executor.PooledExecutionServiceConfiguration;
 import org.ehcache.xml.model.ConfigType;
 import org.ehcache.xml.model.ThreadPoolsType;
 
-public class PooledExecutionServiceConfigurationParser extends SimpleCoreServiceCreationConfigurationParser<ThreadPoolsType> {
+import java.math.BigInteger;
+import java.util.List;
+
+public class PooledExecutionServiceConfigurationParser
+  extends SimpleCoreServiceCreationConfigurationParser<ThreadPoolsType, PooledExecutionServiceConfiguration> {
 
   public PooledExecutionServiceConfigurationParser() {
-    super(ConfigType::getThreadPools, config -> {
-      PooledExecutionServiceConfiguration poolsConfiguration = new PooledExecutionServiceConfiguration();
-      for (ThreadPoolsType.ThreadPool pool : config.getThreadPool()) {
-        if (pool.isDefault()) {
-          poolsConfiguration.addDefaultPool(pool.getAlias(), pool.getMinSize().intValue(), pool.getMaxSize().intValue());
-        } else {
-          poolsConfiguration.addPool(pool.getAlias(), pool.getMinSize().intValue(), pool.getMaxSize().intValue());
+    super(ConfigType::getThreadPools,
+      config -> {
+        PooledExecutionServiceConfiguration poolsConfiguration = new PooledExecutionServiceConfiguration();
+        for (ThreadPoolsType.ThreadPool pool : config.getThreadPool()) {
+          if (pool.isDefault()) {
+            poolsConfiguration.addDefaultPool(pool.getAlias(), pool.getMinSize().intValue(), pool.getMaxSize().intValue());
+          } else {
+            poolsConfiguration.addPool(pool.getAlias(), pool.getMinSize().intValue(), pool.getMaxSize().intValue());
+          }
         }
+        return poolsConfiguration;
+      },
+      PooledExecutionServiceConfiguration.class,
+      (configType, config) -> {
+        ThreadPoolsType threadPoolsType = new ThreadPoolsType();
+        List<ThreadPoolsType.ThreadPool> threadPools = threadPoolsType.getThreadPool();
+        config.getPoolConfigurations().forEach((alias, poolConfig) -> {
+          ThreadPoolsType.ThreadPool threadPool = new ThreadPoolsType.ThreadPool();
+          threadPool.setAlias(alias);
+          if (alias.equals(config.getDefaultPoolAlias())) {
+            threadPool.setDefault(true);
+          }
+          threadPool.setMinSize(BigInteger.valueOf(poolConfig.minSize()));
+          threadPool.setMaxSize(BigInteger.valueOf(poolConfig.maxSize()));
+          threadPools.add(threadPool);
+        });
+        configType.setThreadPools(threadPoolsType);
       }
-
-      return poolsConfiguration;
-    });
+    );
   }
 }

@@ -16,25 +16,35 @@
 
 package org.ehcache.xml.provider;
 
+import org.ehcache.config.Configuration;
 import org.ehcache.config.builders.ConfigurationBuilder;
+import org.ehcache.core.spi.service.ServiceUtils;
 import org.ehcache.spi.service.ServiceCreationConfiguration;
 import org.ehcache.xml.CoreServiceCreationConfigurationParser;
 import org.ehcache.xml.model.ConfigType;
 
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-class SimpleCoreServiceCreationConfigurationParser<T> implements CoreServiceCreationConfigurationParser {
+class SimpleCoreServiceCreationConfigurationParser<T, U extends ServiceCreationConfiguration> implements CoreServiceCreationConfigurationParser {
 
   private final Function<ConfigType, T> extractor;
   private final Parser<T> parser;
 
-  SimpleCoreServiceCreationConfigurationParser(Function<ConfigType, T> extractor, Function<T, ServiceCreationConfiguration<?>> parser) {
-    this(extractor, (c, l) -> parser.apply(c));
+  private final Class<U> configClass;
+  private final BiConsumer<ConfigType, U> serviceConfigMarshaller;
+
+  SimpleCoreServiceCreationConfigurationParser(Function<ConfigType, T> extractor, Function<T, ServiceCreationConfiguration<?>> parser,
+                                               Class<U> clazz, BiConsumer<ConfigType, U> serviceConfigMarshaller) {
+    this(extractor, (c, l) -> parser.apply(c), clazz, serviceConfigMarshaller);
   }
 
-  SimpleCoreServiceCreationConfigurationParser(Function<ConfigType, T> extractor, Parser<T> parser) {
+  SimpleCoreServiceCreationConfigurationParser(Function<ConfigType, T> extractor, Parser<T> parser,
+                                               Class<U> clazz, BiConsumer<ConfigType, U> serviceConfigMarshaller) {
     this.extractor = extractor;
     this.parser = parser;
+    this.configClass = clazz;
+    this.serviceConfigMarshaller = serviceConfigMarshaller;
   }
 
   @Override
@@ -44,6 +54,14 @@ class SimpleCoreServiceCreationConfigurationParser<T> implements CoreServiceCrea
       return builder;
     } else {
       return builder.addService(parser.parse(config, classLoader));
+    }
+  }
+
+  @Override
+  public void unparseServiceCreationConfiguration(ConfigType configType, Configuration configuration) {
+    U config = ServiceUtils.findSingletonAmongst(configClass, configuration.getServiceCreationConfigurations());
+    if (config != null) {
+      serviceConfigMarshaller.accept(configType, config);
     }
   }
 

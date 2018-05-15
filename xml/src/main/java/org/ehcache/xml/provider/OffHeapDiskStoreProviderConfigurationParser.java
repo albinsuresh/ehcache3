@@ -20,9 +20,18 @@ import org.ehcache.impl.config.store.disk.OffHeapDiskStoreProviderConfiguration;
 import org.ehcache.xml.model.ConfigType;
 import org.ehcache.xml.model.ThreadPoolReferenceType;
 
-public class OffHeapDiskStoreProviderConfigurationParser extends SimpleCoreServiceCreationConfigurationParser<ThreadPoolReferenceType> {
+public class OffHeapDiskStoreProviderConfigurationParser
+  extends SimpleCoreServiceCreationConfigurationParser<ThreadPoolReferenceType, OffHeapDiskStoreProviderConfiguration> {
 
   public OffHeapDiskStoreProviderConfigurationParser() {
-    super(ConfigType::getDiskStore, config -> new OffHeapDiskStoreProviderConfiguration(config.getThreadPool()));
+    super(ConfigType::getDiskStore,
+      config -> new OffHeapDiskStoreProviderConfiguration(config.getThreadPool()),
+      OffHeapDiskStoreProviderConfiguration.class,
+      (configType, config) -> {
+        ThreadPoolReferenceType threadPoolReferenceType = new ThreadPoolReferenceType();
+        threadPoolReferenceType.setThreadPool(config.getThreadPoolAlias());
+        configType.setDiskStore(threadPoolReferenceType);
+      }
+    );
   }
 }
