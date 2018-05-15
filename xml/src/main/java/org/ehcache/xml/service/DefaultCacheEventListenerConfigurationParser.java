@@ -16,22 +16,28 @@
 
 package org.ehcache.xml.service;
 
+import org.ehcache.config.CacheConfiguration;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheEventListenerConfigurationBuilder;
 import org.ehcache.event.CacheEventListener;
 import org.ehcache.event.EventFiring;
 import org.ehcache.event.EventOrdering;
+import org.ehcache.impl.config.event.DefaultCacheEventListenerConfiguration;
 import org.ehcache.xml.CoreServiceConfigurationParser;
-import org.ehcache.xml.exceptions.XmlConfigurationException;
 import org.ehcache.xml.model.CacheTemplate;
+import org.ehcache.xml.model.CacheType;
+import org.ehcache.xml.model.EventFiringType;
+import org.ehcache.xml.model.EventOrderingType;
 import org.ehcache.xml.model.EventType;
 import org.ehcache.xml.model.ListenersConfig;
 import org.ehcache.xml.model.ListenersType;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toSet;
+import static org.ehcache.core.spi.service.ServiceUtils.findAmongst;
 import static org.ehcache.xml.XmlConfiguration.getClassForName;
 
 public class DefaultCacheEventListenerConfigurationParser implements CoreServiceConfigurationParser {
@@ -55,6 +61,34 @@ public class DefaultCacheEventListenerConfigurationParser implements CoreService
     }
 
     return cacheBuilder;
+  }
+
+  @Override
+  public void unparseServiceConfiguration(CacheType cacheType, CacheConfiguration<?, ?> cacheConfiguration) {
+    Collection<DefaultCacheEventListenerConfiguration> serviceConfigs =
+      findAmongst(DefaultCacheEventListenerConfiguration.class, cacheConfiguration.getServiceConfigurations());
+
+    if (!serviceConfigs.isEmpty()) {
+      ListenersType listenersType = cacheType.getListeners();
+      if (listenersType == null) {
+        listenersType = new ListenersType();
+        cacheType.setListeners(listenersType);
+      }
+
+      List<ListenersType.Listener> listeners = listenersType.getListener();
+      for (DefaultCacheEventListenerConfiguration serviceConfig : serviceConfigs) {
+        ListenersType.Listener listener = new ListenersType.Listener();
+        listener.setClazz(serviceConfig.getClazz().getName());
+        listener.setEventFiringMode(EventFiringType.fromValue(serviceConfig.firingMode().name()));
+        listener.setEventOrderingMode(EventOrderingType.fromValue(serviceConfig.orderingMode().name()));
+        List<EventType> eventsToFireOn = listener.getEventsToFireOn();
+        for (org.ehcache.event.EventType eventType : serviceConfig.fireOn()) {
+          eventsToFireOn.add(EventType.fromValue(eventType.name()));
+        }
+        listeners.add(listener);
+      }
+    }
+
   }
 }
 

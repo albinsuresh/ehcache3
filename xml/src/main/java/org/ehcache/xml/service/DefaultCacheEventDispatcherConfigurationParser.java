@@ -16,23 +16,33 @@
 
 package org.ehcache.xml.service;
 
-import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.impl.config.event.DefaultCacheEventDispatcherConfiguration;
-import org.ehcache.xml.CoreServiceConfigurationParser;
 import org.ehcache.xml.model.CacheTemplate;
 import org.ehcache.xml.model.ListenersConfig;
+import org.ehcache.xml.model.ListenersType;
 
-public class DefaultCacheEventDispatcherConfigurationParser implements CoreServiceConfigurationParser {
+public class DefaultCacheEventDispatcherConfigurationParser
+  extends SimpleCoreServiceConfigurationParser<ListenersConfig, DefaultCacheEventDispatcherConfiguration> {
 
-  @Override
-  public <K, V> CacheConfigurationBuilder<K, V> parseServiceConfiguration(CacheTemplate cacheDefinition, ClassLoader cacheClassLoader,
-                                                                          CacheConfigurationBuilder<K, V> cacheBuilder) {
-    ListenersConfig listenersConfig = cacheDefinition.listenersConfig();
-    if(listenersConfig != null && listenersConfig.threadPool() != null) {
-      cacheBuilder = cacheBuilder.add(new DefaultCacheEventDispatcherConfiguration(listenersConfig.threadPool()));
-    }
-
-    return cacheBuilder;
+  public DefaultCacheEventDispatcherConfigurationParser() {
+    super(CacheTemplate::listenersConfig,
+      config -> {
+        if(config.threadPool() != null) {
+          return new DefaultCacheEventDispatcherConfiguration(config.threadPool());
+        }
+        return null;
+      },
+      DefaultCacheEventDispatcherConfiguration.class,
+      (cacheType, config) -> {
+        ListenersType listeners = cacheType.getListeners();
+        if (listeners == null) {
+          listeners = new ListenersType();
+          cacheType.setListeners(listeners);
+        }
+        listeners.setDispatcherThreadPool(config.getThreadPoolAlias());
+      }
+    );
   }
+
 }
 

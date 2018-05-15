@@ -19,14 +19,21 @@ package org.ehcache.xml.service;
 import org.ehcache.config.builders.WriteBehindConfigurationBuilder;
 import org.ehcache.config.builders.WriteBehindConfigurationBuilder.BatchedWriteBehindConfigurationBuilder;
 import org.ehcache.config.builders.WriteBehindConfigurationBuilder.UnBatchedWriteBehindConfigurationBuilder;
+import org.ehcache.impl.config.loaderwriter.writebehind.DefaultWriteBehindConfiguration;
+import org.ehcache.spi.loaderwriter.WriteBehindConfiguration;
 import org.ehcache.xml.model.CacheLoaderWriterType;
 import org.ehcache.xml.model.CacheTemplate;
+import org.ehcache.xml.model.TimeType;
+import org.ehcache.xml.model.TimeUnit;
+
+import java.math.BigInteger;
 
 import static java.util.Optional.ofNullable;
 import static org.ehcache.config.builders.WriteBehindConfigurationBuilder.newBatchedWriteBehindConfiguration;
 import static org.ehcache.xml.XmlModel.convertToJUCTimeUnit;
 
-public class DefaultWriteBehindConfigurationParser extends SimpleCoreServiceConfigurationParser<CacheLoaderWriterType.WriteBehind> {
+public class DefaultWriteBehindConfigurationParser
+  extends SimpleCoreServiceConfigurationParser<CacheLoaderWriterType.WriteBehind, DefaultWriteBehindConfiguration> {
 
   public DefaultWriteBehindConfigurationParser() {
     super(CacheTemplate::writeBehind, config ->
@@ -38,7 +45,35 @@ public class DefaultWriteBehindConfigurationParser extends SimpleCoreServiceConf
         return batchedBuilder;
       }).orElseGet(UnBatchedWriteBehindConfigurationBuilder::newUnBatchedWriteBehindConfiguration).useThreadPool(config.getThreadPool())
         .concurrencyLevel(config.getConcurrency().intValue())
-        .queueSize(config.getSize().intValue()).build()
+        .queueSize(config.getSize().intValue()).build(),
+      DefaultWriteBehindConfiguration.class,
+      (cacheType, config) -> {
+        CacheLoaderWriterType loaderWriter = cacheType.getLoaderWriter();
+        if (loaderWriter == null) {
+          loaderWriter = new CacheLoaderWriterType();
+          cacheType.setLoaderWriter(loaderWriter);
+        }
+
+        CacheLoaderWriterType.WriteBehind writeBehind = new CacheLoaderWriterType.WriteBehind();
+        writeBehind.setThreadPool(config.getThreadPoolAlias());
+        writeBehind.setConcurrency(BigInteger.valueOf(config.getConcurrency()));
+        writeBehind.setSize(BigInteger.valueOf(config.getMaxQueueSize()));
+
+        WriteBehindConfiguration.BatchingConfiguration batchingConfiguration = config.getBatchingConfiguration();
+        if (batchingConfiguration == null) {
+          writeBehind.setNonBatching(null);
+        } else {
+          CacheLoaderWriterType.WriteBehind.Batching batching = new CacheLoaderWriterType.WriteBehind.Batching();
+          batching.setBatchSize(BigInteger.valueOf(batchingConfiguration.getBatchSize()));
+          batching.setCoalesce(batchingConfiguration.isCoalescing());
+          TimeType timeType = new TimeType();
+          timeType.setValue(BigInteger.valueOf(batchingConfiguration.getMaxDelay()));
+          timeType.setUnit(TimeUnit.fromValue(batchingConfiguration.getMaxDelayUnit().name().toLowerCase()));
+          batching.setMaxWriteDelay(timeType);
+          writeBehind.setBatching(batching);
+        }
+        loaderWriter.setWriteBehind(writeBehind);
+      }
     );
   }
 }

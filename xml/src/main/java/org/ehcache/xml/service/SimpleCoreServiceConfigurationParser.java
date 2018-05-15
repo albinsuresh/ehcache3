@@ -16,34 +16,56 @@
 
 package org.ehcache.xml.service;
 
+import org.ehcache.config.CacheConfiguration;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.core.spi.service.ServiceUtils;
 import org.ehcache.spi.service.ServiceConfiguration;
 import org.ehcache.xml.CoreServiceConfigurationParser;
 import org.ehcache.xml.model.CacheTemplate;
+import org.ehcache.xml.model.CacheType;
 
+import java.util.Collection;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-class SimpleCoreServiceConfigurationParser<T> implements CoreServiceConfigurationParser {
+class SimpleCoreServiceConfigurationParser<T, U extends ServiceConfiguration> implements CoreServiceConfigurationParser {
 
   private final Function<CacheTemplate, T> extractor;
   private final Parser<T> parser;
 
-  SimpleCoreServiceConfigurationParser(Function<CacheTemplate, T> extractor, Function<T, ServiceConfiguration<?>> parser) {
-    this(extractor, (config, loader) -> parser.apply(config));
+  private final Class<U> configClass;
+  private final BiConsumer<CacheType, U> configMarshaller;
+
+  SimpleCoreServiceConfigurationParser(Function<CacheTemplate, T> extractor, Function<T, ServiceConfiguration<?>> parser,
+                                       Class<U> clazz, BiConsumer<CacheType, U> configMarshaller) {
+    this(extractor, (config, loader) -> parser.apply(config), clazz, configMarshaller);
   }
 
-  SimpleCoreServiceConfigurationParser(Function<CacheTemplate, T> extractor, Parser<T> parser) {
+  SimpleCoreServiceConfigurationParser(Function<CacheTemplate, T> extractor, Parser<T> parser,
+                                       Class<U> clazz, BiConsumer<CacheType, U> configMarshaller) {
     this.extractor = extractor;
     this.parser = parser;
+    this.configClass = clazz;
+    this.configMarshaller = configMarshaller;
   }
 
   @Override
   public final <K, V> CacheConfigurationBuilder<K, V> parseServiceConfiguration(CacheTemplate cacheDefinition, ClassLoader cacheClassLoader, CacheConfigurationBuilder<K, V> cacheBuilder) throws ClassNotFoundException {
     T config = extractor.apply(cacheDefinition);
-    if (config == null) {
-      return cacheBuilder;
-    } else {
-      return cacheBuilder.add(parser.parse(config, cacheClassLoader));
+    if (config != null) {
+      ServiceConfiguration<?> configuration = parser.parse(config, cacheClassLoader);
+      if (configuration != null) {
+        return cacheBuilder.add(configuration);
+      }
+    }
+    return cacheBuilder;
+  }
+
+  @Override
+  public void unparseServiceConfiguration(CacheType cacheType, CacheConfiguration<?, ?> cacheConfiguration) {
+    U serviceConfig = ServiceUtils.findSingletonAmongst(configClass, cacheConfiguration.getServiceConfigurations());
+    if (serviceConfig != null) {
+      configMarshaller.accept(cacheType, serviceConfig);
     }
   }
 
