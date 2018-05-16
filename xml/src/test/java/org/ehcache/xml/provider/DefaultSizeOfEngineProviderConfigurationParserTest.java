@@ -59,7 +59,7 @@ public class DefaultSizeOfEngineProviderConfigurationParserTest extends ServiceP
     ConfigType configType = new ConfigType();
     Configuration config = ConfigurationBuilder.newConfigurationBuilder()
       .addService(new DefaultSizeOfEngineProviderConfiguration(123, MemoryUnit.MB, 987)).build();
-    parser.unparseServiceCreationConfiguration(configType, config);
+    configType = parser.unparseServiceCreationConfiguration(config, configType);
 
     SizeofType heapStore = configType.getHeapStore();
     assertThat(heapStore.getMaxObjectGraphSize().getValue()).isEqualTo(987);

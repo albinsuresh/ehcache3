@@ -29,14 +29,14 @@ public class DefaultSizeOfEngineProviderConfigurationParser
   extends SimpleCoreServiceCreationConfigurationParser<SizeofType, DefaultSizeOfEngineProviderConfiguration> {
 
   public DefaultSizeOfEngineProviderConfigurationParser() {
-    super(ConfigType::getHeapStore,
+    super(DefaultSizeOfEngineProviderConfiguration.class,
+      ConfigType::getHeapStore, ConfigType::setHeapStore,
       config -> {
         SizeOfEngineLimits sizeOfEngineLimits = new SizeOfEngineLimits(config);
         return new DefaultSizeOfEngineProviderConfiguration(sizeOfEngineLimits.getMaxObjectSize(),
           sizeOfEngineLimits.getUnit(), sizeOfEngineLimits.getMaxObjectGraphSize());
       },
-      DefaultSizeOfEngineProviderConfiguration.class,
-      (configType, config) -> {
+      config -> {
         SizeofType sizeofType = new SizeofType();
         SizeofType.MaxObjectGraphSize maxObjectGraphSize = new SizeofType.MaxObjectGraphSize();
         maxObjectGraphSize.setValue(BigInteger.valueOf(config.getMaxObjectGraphSize()));
@@ -45,7 +45,7 @@ public class DefaultSizeOfEngineProviderConfigurationParser
         maxObjectSize.setValue(BigInteger.valueOf(config.getMaxObjectSize()));
         maxObjectSize.setUnit(MemoryUnit.fromValue(config.getUnit().toString()));
         sizeofType.setMaxObjectSize(maxObjectSize);
-        configType.setHeapStore(sizeofType);
+        return sizeofType;
       }
     );
   }

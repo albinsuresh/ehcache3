@@ -72,7 +72,7 @@ public class DefaultCacheEventListenerConfigurationParserTest extends ServiceCon
 
     CacheConfiguration<?, ?> cacheConfig = buildCacheConfigWithServiceConfig(listenerConfig);
     CacheType cacheType = new CacheType();
-    parser.unparseServiceConfiguration(cacheType, cacheConfig);
+    cacheType = parser.unparseServiceConfiguration(cacheConfig, cacheType);
 
     List<ListenersType.Listener> listeners = cacheType.getListeners().getListener();
     assertThat(listeners).hasSize(1);

@@ -53,8 +53,7 @@ public class DefaultResilienceStrategyConfigurationParserTest extends ServiceCon
   public void unparseServiceConfiguration() {
     CacheConfiguration<?, ?> cacheConfig =
       buildCacheConfigWithServiceConfig(new DefaultResilienceStrategyConfiguration(TestResilienceStrategy.class));
-    CacheType cacheType = new CacheType();
-    parser.unparseServiceConfiguration(cacheType, cacheConfig);
+    CacheType cacheType = parser.unparseServiceConfiguration(cacheConfig, new CacheType());
 
     assertThat(cacheType.getResilience()).isEqualTo(TestResilienceStrategy.class.getName());
   }

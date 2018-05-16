@@ -81,7 +81,7 @@ public class DefaultCopierConfigurationParserTest extends ServiceConfigurationPa
     valueType.setValue("bar");
     cacheType.setValueType(valueType);
 
-    parser.unparseServiceConfiguration(cacheType, cacheConfig);
+    cacheType = parser.unparseServiceConfiguration(cacheConfig, cacheType);
 
     assertThat(cacheType.getKeyType().getCopier()).isEqualTo(DescriptionCopier.class.getName());
     assertThat(cacheType.getValueType().getCopier()).isEqualTo(PersonCopier.class.getName());

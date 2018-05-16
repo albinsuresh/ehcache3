@@ -27,5 +27,5 @@ public interface CoreServiceConfigurationParser {
   <K, V> CacheConfigurationBuilder<K, V> parseServiceConfiguration(CacheTemplate cacheDefinition, ClassLoader cacheClassLoader,
                                                                    CacheConfigurationBuilder<K, V> cacheBuilder) throws ClassNotFoundException;
 
-  void unparseServiceConfiguration(CacheType cacheType, CacheConfiguration<?, ?> cacheConfiguration);
+  CacheType unparseServiceConfiguration(CacheConfiguration<?, ?> cacheConfiguration, CacheType cacheType);
 }

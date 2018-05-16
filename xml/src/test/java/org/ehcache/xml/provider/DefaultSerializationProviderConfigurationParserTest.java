@@ -75,8 +75,7 @@ public class DefaultSerializationProviderConfigurationParserTest extends Service
     providerConfig.addSerializerFor(Person.class, (Class) TestSerializer4.class);
 
     Configuration config = ConfigurationBuilder.newConfigurationBuilder().addService(providerConfig).build();
-    ConfigType configType = new ConfigType();
-    parser.unparseServiceCreationConfiguration(configType, config);
+    ConfigType configType = parser.unparseServiceCreationConfiguration(config, new ConfigType());
 
     List<SerializerType.Serializer> serializers = configType.getDefaultSerializers().getSerializer();
     assertThat(serializers).hasSize(2);

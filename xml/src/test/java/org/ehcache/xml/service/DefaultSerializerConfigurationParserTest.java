@@ -76,7 +76,7 @@ public class DefaultSerializerConfigurationParserTest extends ServiceConfigurati
     valueType.setValue("bar");
     cacheType.setValueType(valueType);
 
-    parser.unparseServiceConfiguration(cacheType, cacheConfig);
+    cacheType = parser.unparseServiceConfiguration(cacheConfig, cacheType);
 
     assertThat(cacheType.getKeyType().getSerializer()).isEqualTo(TestSerializer3.class.getName());
     assertThat(cacheType.getValueType().getSerializer()).isEqualTo(TestSerializer4.class.getName());

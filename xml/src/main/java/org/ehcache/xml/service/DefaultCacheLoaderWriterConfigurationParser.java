@@ -20,24 +20,22 @@ import org.ehcache.impl.config.loaderwriter.DefaultCacheLoaderWriterConfiguratio
 import org.ehcache.spi.loaderwriter.CacheLoaderWriter;
 import org.ehcache.xml.model.CacheLoaderWriterType;
 import org.ehcache.xml.model.CacheTemplate;
+import org.ehcache.xml.model.CacheType;
 
 import static org.ehcache.xml.XmlConfiguration.getClassForName;
 
 public class DefaultCacheLoaderWriterConfigurationParser
-  extends SimpleCoreServiceConfigurationParser<String, DefaultCacheLoaderWriterConfiguration> {
+  extends SimpleCoreServiceConfigurationParser<String, CacheLoaderWriterType, DefaultCacheLoaderWriterConfiguration> {
 
   public DefaultCacheLoaderWriterConfigurationParser() {
-    super(CacheTemplate::loaderWriter,
+    super(DefaultCacheLoaderWriterConfiguration.class,
+      CacheTemplate::loaderWriter,
       (config, loader) -> new DefaultCacheLoaderWriterConfiguration((Class<? extends CacheLoaderWriter<?, ?>>) getClassForName(config, loader)),
-      DefaultCacheLoaderWriterConfiguration.class,
-      (cacheType, config) -> {
-        CacheLoaderWriterType cacheLoaderWriterType = cacheType.getLoaderWriter();
-        if (cacheLoaderWriterType == null) {
-          cacheLoaderWriterType = new CacheLoaderWriterType();
-          cacheType.setLoaderWriter(cacheLoaderWriterType);
-        }
-        cacheLoaderWriterType.setClazz(config.getClazz().getName());
-      }
-    );
+      CacheType::getLoaderWriter, CacheType::setLoaderWriter,
+      config -> {
+        CacheLoaderWriterType loaderWriterType  = new CacheLoaderWriterType();
+        loaderWriterType.setClazz(config.getClazz().getName());
+        return loaderWriterType;
+      });
   }
 }

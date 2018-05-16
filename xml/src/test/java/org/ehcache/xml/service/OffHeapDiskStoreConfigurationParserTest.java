@@ -53,7 +53,7 @@ public class OffHeapDiskStoreConfigurationParserTest extends ServiceConfiguratio
     CacheConfiguration<?, ?> cacheConfig =
       buildCacheConfigWithServiceConfig(new OffHeapDiskStoreConfiguration("foo", 4, 8));
     CacheType cacheType = new CacheType();
-    parser.unparseServiceConfiguration(cacheType, cacheConfig);
+    cacheType = parser.unparseServiceConfiguration(cacheConfig, cacheType);
 
     DiskStoreSettingsType diskStoreSettings = cacheType.getDiskStoreSettings();
     assertThat(diskStoreSettings.getThreadPool()).isEqualTo("foo");

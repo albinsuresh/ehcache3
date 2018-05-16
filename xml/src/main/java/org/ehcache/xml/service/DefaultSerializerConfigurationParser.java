@@ -47,7 +47,7 @@ public class DefaultSerializerConfigurationParser implements CoreServiceConfigur
   }
 
   @Override
-  public void unparseServiceConfiguration(CacheType cacheType, CacheConfiguration<?, ?> cacheConfiguration) {
+  public CacheType unparseServiceConfiguration(CacheConfiguration<?, ?> cacheConfiguration, CacheType cacheType) {
     Collection<DefaultSerializerConfiguration> serializerConfigs =
       findAmongst(DefaultSerializerConfiguration.class, cacheConfiguration.getServiceConfigurations());
     for (DefaultSerializerConfiguration serializerConfig : serializerConfigs) {
@@ -57,5 +57,6 @@ public class DefaultSerializerConfigurationParser implements CoreServiceConfigur
         cacheType.getValueType().setSerializer(serializerConfig.getClazz().getName());
       }
     }
+    return cacheType;
   }
 }

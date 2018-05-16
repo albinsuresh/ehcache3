@@ -27,7 +27,8 @@ public class PooledExecutionServiceConfigurationParser
   extends SimpleCoreServiceCreationConfigurationParser<ThreadPoolsType, PooledExecutionServiceConfiguration> {
 
   public PooledExecutionServiceConfigurationParser() {
-    super(ConfigType::getThreadPools,
+    super(PooledExecutionServiceConfiguration.class,
+      ConfigType::getThreadPools, ConfigType::setThreadPools,
       config -> {
         PooledExecutionServiceConfiguration poolsConfiguration = new PooledExecutionServiceConfiguration();
         for (ThreadPoolsType.ThreadPool pool : config.getThreadPool()) {
@@ -39,8 +40,7 @@ public class PooledExecutionServiceConfigurationParser
         }
         return poolsConfiguration;
       },
-      PooledExecutionServiceConfiguration.class,
-      (configType, config) -> {
+      config -> {
         ThreadPoolsType threadPoolsType = new ThreadPoolsType();
         List<ThreadPoolsType.ThreadPool> threadPools = threadPoolsType.getThreadPool();
         config.getPoolConfigurations().forEach((alias, poolConfig) -> {
@@ -53,7 +53,7 @@ public class PooledExecutionServiceConfigurationParser
           threadPool.setMaxSize(BigInteger.valueOf(poolConfig.maxSize()));
           threadPools.add(threadPool);
         });
-        configType.setThreadPools(threadPoolsType);
+        return threadPoolsType;
       }
     );
   }

@@ -20,18 +20,10 @@ import org.ehcache.impl.config.event.CacheEventDispatcherFactoryConfiguration;
 import org.ehcache.xml.model.ConfigType;
 import org.ehcache.xml.model.ThreadPoolReferenceType;
 
-public class CacheEventDispatcherFactoryConfigurationParser
-  extends SimpleCoreServiceCreationConfigurationParser<ThreadPoolReferenceType, CacheEventDispatcherFactoryConfiguration> {
+public class CacheEventDispatcherFactoryConfigurationParser extends ThreadPoolServiceCreationConfigurationParser<CacheEventDispatcherFactoryConfiguration> {
 
   public CacheEventDispatcherFactoryConfigurationParser() {
-    super(ConfigType::getEventDispatch,
-      config -> new CacheEventDispatcherFactoryConfiguration(config.getThreadPool()),
-      CacheEventDispatcherFactoryConfiguration.class,
-      (configType, config) -> {
-        ThreadPoolReferenceType threadPoolReferenceType = new ThreadPoolReferenceType();
-        threadPoolReferenceType.setThreadPool(config.getThreadPoolAlias());
-        configType.setEventDispatch(threadPoolReferenceType);
-      }
-    );
+    super(CacheEventDispatcherFactoryConfiguration.class, ConfigType::getEventDispatch, ConfigType::setEventDispatch,
+      CacheEventDispatcherFactoryConfiguration::new, CacheEventDispatcherFactoryConfiguration::getThreadPoolAlias);
   }
 }

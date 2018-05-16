@@ -26,11 +26,13 @@ public class CacheManagerPersistenceConfigurationParser
   extends SimpleCoreServiceCreationConfigurationParser<PersistenceType, CacheManagerPersistenceConfiguration> {
 
   public CacheManagerPersistenceConfigurationParser() {
-    super(ConfigType::getPersistence, config -> new CacheManagerPersistenceConfiguration(new File(config.getDirectory())),
-      CacheManagerPersistenceConfiguration.class, (configType, config) -> {
+    super(CacheManagerPersistenceConfiguration.class,
+      ConfigType::getPersistence, ConfigType::setPersistence,
+      config -> new CacheManagerPersistenceConfiguration(new File(config.getDirectory())),
+      config -> {
         PersistenceType persistenceType = new PersistenceType();
         persistenceType.setDirectory(config.getRootDirectory().toString());
-        configType.setPersistence(persistenceType);
+        return persistenceType;
       });
   }
 }

@@ -72,7 +72,7 @@ public class DefaultSizeOfEngineConfigurationParserTest extends ServiceConfigura
     CacheConfiguration<?, ?> cacheConfig =
       buildCacheConfigWithServiceConfig(new DefaultSizeOfEngineConfiguration(123, MemoryUnit.MB, 987));
     CacheType cacheType = new CacheType();
-    parser.unparseServiceConfiguration(cacheType, cacheConfig);
+    cacheType = parser.unparseServiceConfiguration(cacheConfig, cacheType);
 
     SizeofType heapStore = cacheType.getHeapStoreSettings();
     assertThat(heapStore.getMaxObjectGraphSize().getValue()).isEqualTo(987);

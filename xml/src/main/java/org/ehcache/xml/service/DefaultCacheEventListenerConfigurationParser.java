@@ -64,7 +64,7 @@ public class DefaultCacheEventListenerConfigurationParser implements CoreService
   }
 
   @Override
-  public void unparseServiceConfiguration(CacheType cacheType, CacheConfiguration<?, ?> cacheConfiguration) {
+  public CacheType unparseServiceConfiguration(CacheConfiguration<?, ?> cacheConfiguration, CacheType cacheType) {
     Collection<DefaultCacheEventListenerConfiguration> serviceConfigs =
       findAmongst(DefaultCacheEventListenerConfiguration.class, cacheConfiguration.getServiceConfigurations());
 
@@ -89,6 +89,7 @@ public class DefaultCacheEventListenerConfigurationParser implements CoreService
       }
     }
 
+    return cacheType;
   }
 }
 

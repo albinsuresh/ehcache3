@@ -71,8 +71,7 @@ public class DefaultCopyProviderConfigurationParserTest extends ServiceProvideCo
     providerConfig.addCopierFor(Person.class, PersonCopier.class);
 
     Configuration config = ConfigurationBuilder.newConfigurationBuilder().addService(providerConfig).build();
-    ConfigType configType = new ConfigType();
-    parser.unparseServiceCreationConfiguration(configType, config);
+    ConfigType configType = parser.unparseServiceCreationConfiguration(config, new ConfigType());
 
     List<CopierType.Copier> copiers = configType.getDefaultCopiers().getCopier();
     assertThat(copiers).hasSize(2);

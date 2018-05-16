@@ -54,10 +54,9 @@ public class CacheManagerPersistenceConfigurationParserTest extends ServiceProvi
 
   @Test
   public void unparseServiceCreationConfiguration() {
-    ConfigType configType = new ConfigType();
     Configuration config = ConfigurationBuilder.newConfigurationBuilder()
       .addService(new CacheManagerPersistenceConfiguration(new File("foo"))).build();
-    parser.unparseServiceCreationConfiguration(configType, config);
+    ConfigType configType = parser.unparseServiceCreationConfiguration(config, new ConfigType());
 
     assertThat(configType.getPersistence().getDirectory()).isEqualTo("foo");
   }

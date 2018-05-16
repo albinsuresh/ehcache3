@@ -47,7 +47,7 @@ public class DefaultCopierConfigurationParser implements CoreServiceConfiguratio
   }
 
   @Override
-  public void unparseServiceConfiguration(CacheType cacheType, CacheConfiguration<?, ?> cacheConfiguration) {
+  public CacheType unparseServiceConfiguration(CacheConfiguration<?, ?> cacheConfiguration, CacheType cacheType) {
     Collection<DefaultCopierConfiguration> copierConfigs =
       findAmongst(DefaultCopierConfiguration.class, cacheConfiguration.getServiceConfigurations());
     for (DefaultCopierConfiguration copierConfig : copierConfigs) {
@@ -57,5 +57,6 @@ public class DefaultCopierConfigurationParser implements CoreServiceConfiguratio
         cacheType.getValueType().setCopier(copierConfig.getClazz().getName());
       }
     }
+    return cacheType;
   }
 }

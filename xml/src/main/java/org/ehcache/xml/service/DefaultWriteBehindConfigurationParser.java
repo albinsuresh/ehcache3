@@ -21,6 +21,7 @@ import org.ehcache.config.builders.WriteBehindConfigurationBuilder.BatchedWriteB
 import org.ehcache.config.builders.WriteBehindConfigurationBuilder.UnBatchedWriteBehindConfigurationBuilder;
 import org.ehcache.impl.config.loaderwriter.writebehind.DefaultWriteBehindConfiguration;
 import org.ehcache.spi.loaderwriter.WriteBehindConfiguration;
+import org.ehcache.xml.model.BaseCacheType;
 import org.ehcache.xml.model.CacheLoaderWriterType;
 import org.ehcache.xml.model.CacheTemplate;
 import org.ehcache.xml.model.TimeType;
@@ -33,11 +34,12 @@ import static org.ehcache.config.builders.WriteBehindConfigurationBuilder.newBat
 import static org.ehcache.xml.XmlModel.convertToJUCTimeUnit;
 
 public class DefaultWriteBehindConfigurationParser
-  extends SimpleCoreServiceConfigurationParser<CacheLoaderWriterType.WriteBehind, DefaultWriteBehindConfiguration> {
+  extends SimpleCoreServiceConfigurationParser<CacheLoaderWriterType.WriteBehind, CacheLoaderWriterType, WriteBehindConfiguration> {
 
   public DefaultWriteBehindConfigurationParser() {
-    super(CacheTemplate::writeBehind, config ->
-      ofNullable(config.getBatching()).<WriteBehindConfigurationBuilder>map(batching -> {
+    super(WriteBehindConfiguration.class,
+      CacheTemplate::writeBehind,
+      config -> ofNullable(config.getBatching()).<WriteBehindConfigurationBuilder>map(batching -> {
         BatchedWriteBehindConfigurationBuilder batchedBuilder = newBatchedWriteBehindConfiguration(batching.getMaxWriteDelay().getValue().longValue(), convertToJUCTimeUnit(batching.getMaxWriteDelay().getUnit()), batching.getBatchSize().intValue());
         if (batching.isCoalesce()) {
           batchedBuilder = batchedBuilder.enableCoalescing();
@@ -46,14 +48,9 @@ public class DefaultWriteBehindConfigurationParser
       }).orElseGet(UnBatchedWriteBehindConfigurationBuilder::newUnBatchedWriteBehindConfiguration).useThreadPool(config.getThreadPool())
         .concurrencyLevel(config.getConcurrency().intValue())
         .queueSize(config.getSize().intValue()).build(),
-      DefaultWriteBehindConfiguration.class,
-      (cacheType, config) -> {
-        CacheLoaderWriterType loaderWriter = cacheType.getLoaderWriter();
-        if (loaderWriter == null) {
-          loaderWriter = new CacheLoaderWriterType();
-          cacheType.setLoaderWriter(loaderWriter);
-        }
-
+      BaseCacheType::getLoaderWriter, BaseCacheType::setLoaderWriter,
+      config -> {
+        CacheLoaderWriterType loaderWriter = new CacheLoaderWriterType();
         CacheLoaderWriterType.WriteBehind writeBehind = new CacheLoaderWriterType.WriteBehind();
         writeBehind.setThreadPool(config.getThreadPoolAlias());
         writeBehind.setConcurrency(BigInteger.valueOf(config.getConcurrency()));
@@ -73,7 +70,11 @@ public class DefaultWriteBehindConfigurationParser
           writeBehind.setBatching(batching);
         }
         loaderWriter.setWriteBehind(writeBehind);
-      }
-    );
+        return loaderWriter;
+      },
+      (existing, additional) -> {
+        existing.setWriteBehind(additional.getWriteBehind());
+        return existing;
+      });
   }
 }

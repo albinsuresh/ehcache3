@@ -70,7 +70,7 @@ public class PooledExecutionServiceConfigurationParserTest extends ServiceProvid
 
     Configuration config = ConfigurationBuilder.newConfigurationBuilder().addService(providerConfig).build();
     ConfigType configType = new ConfigType();
-    parser.unparseServiceCreationConfiguration(configType, config);
+    configType = parser.unparseServiceCreationConfiguration(config, configType);
 
     List<ThreadPoolsType.ThreadPool> threadPools = configType.getThreadPools().getThreadPool();
     assertThat(threadPools).hasSize(2);

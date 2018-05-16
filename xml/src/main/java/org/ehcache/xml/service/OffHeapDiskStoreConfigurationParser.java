@@ -16,32 +16,29 @@
 
 package org.ehcache.xml.service;
 
-import org.ehcache.config.CacheConfiguration;
-import org.ehcache.core.spi.service.ServiceUtils;
 import org.ehcache.impl.config.store.disk.OffHeapDiskStoreConfiguration;
 import org.ehcache.xml.model.CacheTemplate;
 import org.ehcache.xml.model.CacheType;
 import org.ehcache.xml.model.DiskStoreSettingsType;
-import org.w3c.dom.Document;
 
 import java.math.BigInteger;
 
 import static org.ehcache.core.spi.service.ServiceUtils.findSingletonAmongst;
 
 public class OffHeapDiskStoreConfigurationParser
-  extends SimpleCoreServiceConfigurationParser<DiskStoreSettingsType, OffHeapDiskStoreConfiguration> {
+  extends SimpleCoreServiceConfigurationParser<DiskStoreSettingsType, DiskStoreSettingsType, OffHeapDiskStoreConfiguration> {
 
   public OffHeapDiskStoreConfigurationParser() {
-    super(CacheTemplate::diskStoreSettings,
+    super(OffHeapDiskStoreConfiguration.class,
+      CacheTemplate::diskStoreSettings,
       config -> new OffHeapDiskStoreConfiguration(config.getThreadPool(), config.getWriterConcurrency().intValue(), config.getDiskSegments().intValue()),
-      OffHeapDiskStoreConfiguration.class,
-      (cacheType, config) -> {
+      CacheType::getDiskStoreSettings, CacheType::setDiskStoreSettings,
+      config -> {
         DiskStoreSettingsType diskStoreSettingsType = new DiskStoreSettingsType();
         diskStoreSettingsType.setThreadPool(config.getThreadPoolAlias());
         diskStoreSettingsType.setDiskSegments(BigInteger.valueOf(config.getDiskSegments()));
         diskStoreSettingsType.setWriterConcurrency(BigInteger.valueOf(config.getWriterConcurrency()));
-        cacheType.setDiskStoreSettings(diskStoreSettingsType);
-      }
-    );
+        return diskStoreSettingsType;
+      });
   }
 }

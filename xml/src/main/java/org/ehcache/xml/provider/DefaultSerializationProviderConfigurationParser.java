@@ -29,7 +29,8 @@ public class DefaultSerializationProviderConfigurationParser
   extends SimpleCoreServiceCreationConfigurationParser<SerializerType, DefaultSerializationProviderConfiguration> {
 
   public DefaultSerializationProviderConfigurationParser() {
-    super(ConfigType::getDefaultSerializers,
+    super(DefaultSerializationProviderConfiguration.class,
+      ConfigType::getDefaultSerializers, ConfigType::setDefaultSerializers,
       (config, loader) -> {
         DefaultSerializationProviderConfiguration configuration = new DefaultSerializationProviderConfiguration();
         for (SerializerType.Serializer serializer : config.getSerializer()) {
@@ -37,8 +38,7 @@ public class DefaultSerializationProviderConfigurationParser
         }
         return configuration;
       },
-      DefaultSerializationProviderConfiguration.class,
-      (configType, config) -> {
+      config -> {
         SerializerType serializerType = new SerializerType();
         List<SerializerType.Serializer> serializers = serializerType.getSerializer();
         config.getDefaultSerializers().forEach((clazz, serializerClazz) -> {
@@ -47,7 +47,7 @@ public class DefaultSerializationProviderConfigurationParser
           serializer.setValue(serializerClazz.getName());
           serializers.add(serializer);
         });
-        configType.setDefaultSerializers(serializerType);
+        return serializerType;
       }
     );
   }

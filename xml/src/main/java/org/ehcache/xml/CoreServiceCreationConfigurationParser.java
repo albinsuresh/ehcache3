@@ -25,5 +25,5 @@ public interface CoreServiceCreationConfigurationParser {
   ConfigurationBuilder parseServiceCreationConfiguration(ConfigType root, ClassLoader classLoader, ConfigurationBuilder builder) throws ClassNotFoundException;
 
 
-  void unparseServiceCreationConfiguration(ConfigType configType, Configuration configuration);
+  ConfigType unparseServiceCreationConfiguration(Configuration configuration, ConfigType root);
 }

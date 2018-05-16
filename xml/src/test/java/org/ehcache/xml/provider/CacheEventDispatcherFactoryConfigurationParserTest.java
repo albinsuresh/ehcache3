@@ -52,10 +52,9 @@ public class CacheEventDispatcherFactoryConfigurationParserTest extends ServiceP
 
   @Test
   public void unparseServiceCreationConfiguration() {
-    ConfigType configType = new ConfigType();
     Configuration config = ConfigurationBuilder.newConfigurationBuilder()
       .addService(new CacheEventDispatcherFactoryConfiguration("foo")).build();
-    parser.unparseServiceCreationConfiguration(configType, config);
+    ConfigType configType = parser.unparseServiceCreationConfiguration(config, new ConfigType());
 
     assertThat(configType.getEventDispatch().getThreadPool()).isEqualTo("foo");
   }

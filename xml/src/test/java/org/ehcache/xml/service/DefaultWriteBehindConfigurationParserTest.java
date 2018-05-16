@@ -77,7 +77,7 @@ public class DefaultWriteBehindConfigurationParserTest extends ServiceConfigurat
       .enableCoalescing().concurrencyLevel(8).useThreadPool("foo").queueSize(16).build();
     CacheConfiguration<?, ?> cacheConfig = buildCacheConfigWithServiceConfig(writeBehindConfiguration);
     CacheType cacheType = new CacheType();
-    parser.unparseServiceConfiguration(cacheType, cacheConfig);
+    cacheType = parser.unparseServiceConfiguration(cacheConfig, cacheType);
 
     CacheLoaderWriterType.WriteBehind writeBehind = cacheType.getLoaderWriter().getWriteBehind();
     assertThat(writeBehind.getThreadPool()).isEqualTo("foo");

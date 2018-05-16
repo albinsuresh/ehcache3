@@ -52,8 +52,8 @@ public class DefaultCacheLoaderWriterConfigurationParserTest extends ServiceConf
   public void unparseServiceConfiguration() {
     CacheConfiguration<?, ?> cacheConfig =
       buildCacheConfigWithServiceConfig(new DefaultCacheLoaderWriterConfiguration(TestCacheLoaderWriter.class));
-    CacheType cacheType = new CacheType();
-    parser.unparseServiceConfiguration(cacheType, cacheConfig);
+    CacheType cacheType = parser.unparseServiceConfiguration(cacheConfig, new CacheType());
+
 
     assertThat(cacheType.getLoaderWriter().getClazz()).isEqualTo(TestCacheLoaderWriter.class.getName());
   }

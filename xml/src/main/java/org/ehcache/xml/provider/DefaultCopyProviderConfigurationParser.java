@@ -29,7 +29,8 @@ public class DefaultCopyProviderConfigurationParser
   extends SimpleCoreServiceCreationConfigurationParser<CopierType, DefaultCopyProviderConfiguration> {
 
   public DefaultCopyProviderConfigurationParser() {
-    super(ConfigType::getDefaultCopiers,
+    super(DefaultCopyProviderConfiguration.class,
+      ConfigType::getDefaultCopiers, ConfigType::setDefaultCopiers,
       (config, loader) -> {
         DefaultCopyProviderConfiguration configuration = new DefaultCopyProviderConfiguration();
         for (CopierType.Copier copier : config.getCopier()) {
@@ -37,8 +38,7 @@ public class DefaultCopyProviderConfigurationParser
         }
         return configuration;
       },
-      DefaultCopyProviderConfiguration.class,
-      (configType, config) -> {
+      config -> {
         CopierType copierType = new CopierType();
         List<CopierType.Copier> copiers = copierType.getCopier();
         config.getDefaults().forEach((clazz, copierConfig) -> {
@@ -47,7 +47,7 @@ public class DefaultCopyProviderConfigurationParser
           copier.setValue(copierConfig.getClazz().getName());
           copiers.add(copier);
         });
-        configType.setDefaultCopiers(copierType);
+        return copierType;
       }
     );
   }

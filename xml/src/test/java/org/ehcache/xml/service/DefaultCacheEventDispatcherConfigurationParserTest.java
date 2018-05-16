@@ -53,7 +53,7 @@ public class DefaultCacheEventDispatcherConfigurationParserTest extends ServiceC
     CacheConfiguration<?, ?> cacheConfig =
       buildCacheConfigWithServiceConfig(new DefaultCacheEventDispatcherConfiguration("foo"));
     CacheType cacheType = new CacheType();
-    parser.unparseServiceConfiguration(cacheType, cacheConfig);
+    cacheType = parser.unparseServiceConfiguration(cacheConfig, cacheType);
 
     assertThat(cacheType.getListeners().getDispatcherThreadPool()).isEqualTo("foo");
   }

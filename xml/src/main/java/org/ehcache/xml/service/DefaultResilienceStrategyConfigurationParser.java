@@ -19,19 +19,17 @@ package org.ehcache.xml.service;
 import org.ehcache.impl.config.resilience.DefaultResilienceStrategyConfiguration;
 import org.ehcache.spi.resilience.ResilienceStrategy;
 import org.ehcache.xml.model.CacheTemplate;
+import org.ehcache.xml.model.CacheType;
 
 import static org.ehcache.xml.XmlConfiguration.getClassForName;
 
 public class DefaultResilienceStrategyConfigurationParser
-  extends SimpleCoreServiceConfigurationParser<String, DefaultResilienceStrategyConfiguration> {
+  extends SimpleCoreServiceConfigurationParser<String, String, DefaultResilienceStrategyConfiguration> {
 
   public DefaultResilienceStrategyConfigurationParser() {
-    super(CacheTemplate::resilienceStrategy,
+    super(DefaultResilienceStrategyConfiguration.class,
+      CacheTemplate::resilienceStrategy,
       (config, loader) -> new DefaultResilienceStrategyConfiguration((Class<? extends ResilienceStrategy>) getClassForName(config, loader)),
-      DefaultResilienceStrategyConfiguration.class,
-      (cacheType, config) -> {
-        cacheType.setResilience(config.getClazz().getName());
-      }
-    );
+      CacheType::getResilience, CacheType::setResilience, config -> config.getClazz().getName());
   }
 }

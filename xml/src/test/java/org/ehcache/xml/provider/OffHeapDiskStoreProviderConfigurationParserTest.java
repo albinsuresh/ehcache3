@@ -57,7 +57,7 @@ public class OffHeapDiskStoreProviderConfigurationParserTest extends ServiceProv
     ConfigType configType = new ConfigType();
     Configuration config = ConfigurationBuilder.newConfigurationBuilder()
       .addService(new OffHeapDiskStoreProviderConfiguration("foo")).build();
-    parser.unparseServiceCreationConfiguration(configType, config);
+    configType = parser.unparseServiceCreationConfiguration(config, configType);
 
     assertThat(configType.getDiskStore().getThreadPool()).isEqualTo("foo");
   }
